@@ -1,0 +1,15 @@
+{
+  "name": "kocici-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "drizzle-orm": "^0.43.1",
+    "pg": "^8.20.0",
+    "tsx": "^4.19.4"
+  }
+}
