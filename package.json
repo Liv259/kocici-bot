@@ -2,14 +2,21 @@
   "name": "kocici-bot",
   "version": "1.0.0",
   "type": "module",
-  "main": "src/index.ts",
   "scripts": {
-    "start": "tsx src/index.ts"
+    "start": "node --loader tsx/esm src/index.ts",
+    "deploy-commands": "node --loader tsx/esm src/deploy.ts",
+    "migrate": "drizzle-kit push"
   },
   "dependencies": {
-    "discord.js": "^14.16.3",
-    "drizzle-orm": "^0.43.1",
-    "pg": "^8.20.0",
-    "tsx": "^4.19.4"
+    "discord.js": "^14.21.0",
+    "drizzle-orm": "^0.40.0",
+    "pg": "^8.13.3",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.11",
+    "drizzle-kit": "^0.30.0",
+    "typescript": "^5.7.0"
   }
 }
