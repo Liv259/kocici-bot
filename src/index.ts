@@ -39,52 +39,43 @@ function getMidnightPragueMs(): number {
 async function runHungerCycle() {
   try {
     const players = await getAllPlayersAllGuilds();
+    const aktivniHodiny = isPragueActiveHours();
 
-    // Seskup hráče podle serveru
-    const byGuild = new Map<string, typeof players>();
-    for (const p of players) {
-      if (!byGuild.has(p.guildId)) byGuild.set(p.guildId, []);
-      byGuild.get(p.guildId)!.push(p);
-    }
+    for (const player of players) {
+      if (player.isMrtvy) continue;
+      if (player.role === "kote" || player.role === "hvezdny_klan") continue;
 
-    for (const [guildId, guildPlayers] of byGuild) {
-      const klan = await getKlanData(guildId);
-      const kanalId = (klan as any).kanalHladId as string | null;
+      // Sníž hlad o 10–15 každé 2 hodiny
+      const pokles = Math.floor(Math.random() * 6) + 10;
+      const novyHlad = Math.max(0, player.hlad - pokles);
+      await updatePlayer(player.discordId, player.guildId, { hlad: novyHlad });
 
-      for (const player of guildPlayers) {
-        if (player.isMrtvy) continue;
-        if (player.role === "kote" || player.role === "hvezdny_klan") continue;
+      const notifKey = `${player.guildId}:${player.discordId}`;
 
-        // Sníž hlad o 10–15 každé 2 hodiny
-        const pokles = Math.floor(Math.random() * 6) + 10;
-        const novyHlad = Math.max(0, player.hlad - pokles);
-        await updatePlayer(player.discordId, guildId, { hlad: novyHlad });
+      // Odmaž příznak upozornění jakmile se hráč naje
+      if (novyHlad > 30) {
+        notifiedToday.delete(notifKey);
+      }
 
-        // Upozornění jen v aktivních hodinách a jen jednou dokud se nenají
-        const notifKey = `${guildId}:${player.discordId}`;
-        if (novyHlad <= 25 && !notifiedToday.has(notifKey) && isPragueActiveHours() && kanalId) {
-          try {
-            const kanal = await client.channels.fetch(kanalId) as TextChannel;
-            if (kanal?.isTextBased()) {
-              await kanal.send(
-                `🍽️ <@${player.discordId}> — **${player.jmeno}** má hlad! ` +
-                `Hromada jídla čeká na tebe. Použij \`/najist\` nebo jdi na \`/lov\`. ` +
-                `*(hlad: ${novyHlad}/100)*`
-              );
-              notifiedToday.add(notifKey);
-            }
-          } catch {
-            // Kanál neexistuje nebo bot nemá přístup
-          }
-        }
-
-        // Odmaž upozornění jakmile se hráč naje (hlad > 25)
-        if (novyHlad > 25) {
-          notifiedToday.delete(notifKey);
+      // DM upozornění – jen v aktivních hodinách (8–21) a jen jednou dokud se nenají
+      if (novyHlad <= 30 && !notifiedToday.has(notifKey) && aktivniHodiny) {
+        try {
+          const discordUser = await client.users.fetch(player.discordId);
+          await discordUser.send(
+            `🍽️ **${player.jmeno}** má hlad!\n` +
+            `Hromada jídla čeká – použij \`/najist\` nebo jdi na \`/lov\`.\n` +
+            `*(hlad: ${novyHlad}/100)*`
+          );
+          notifiedToday.add(notifKey);
+          console.log(`📨 [Hlad] DM odesláno: ${player.jmeno} (hlad: ${novyHlad})`);
+        } catch {
+          // Hráč má DM zakázané nebo bot k němu nemá přístup
+          console.log(`⚠️ [Hlad] DM nelze doručit: ${player.jmeno}`);
         }
       }
     }
-    console.log(`✅ [Hlad] Cyklus dokončen – ${new Date().toLocaleTimeString("cs-CZ", { timeZone: "Europe/Prague" })} (Praha)`);
+
+    console.log(`✅ [Hlad] Cyklus dokončen – ${new Date().toLocaleTimeString("cs-CZ", { timeZone: "Europe/Prague" })} (Praha), aktivní hodiny: ${aktivniHodiny}`);
   } catch (err) {
     console.error("❌ [Hlad] Chyba v hunger cyklu:", err);
   }
