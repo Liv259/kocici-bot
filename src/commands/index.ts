@@ -12,6 +12,7 @@ import * as vycvik_lecitel from "./vycvik_lecitel.js";
 import * as sezona from "./sezona.js";
 import * as nastavit_roli from "./nastavit_roli.js";
 import * as nastavit_klan from "./nastavit_klan.js";
+import * as nastavit_kanal from "./nastavit_kanal.js";
 
 interface Command {
   data: SlashCommandBuilder;
@@ -21,7 +22,7 @@ interface Command {
 const allCommands: Command[] = [
   lov, hromada, najist, boj, osetrit,
   stav, smrt, prehled, vycvik, vycvik_lecitel,
-  sezona, nastavit_roli, nastavit_klan,
+  sezona, nastavit_roli, nastavit_klan, nastavit_kanal,
 ];
 
 export const commands = new Collection<string, Command>();
