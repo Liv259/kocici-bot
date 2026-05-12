@@ -22,6 +22,7 @@ export const klanDataTable = pgTable("klan_data", {
   hromadaJidla: integer("hromada_jidla").notNull().default(0),
   sezona: text("sezona").notNull().default("jaro"),
   nazevKlanu: text("nazev_klanu"),
+  kanalHladId: text("kanal_hlad_id"),
 });
 
 export type Player = typeof discordPlayersTable.$inferSelect;
