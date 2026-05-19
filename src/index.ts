@@ -2,6 +2,13 @@ import { Client, GatewayIntentBits, Interaction, TextChannel } from "discord.js"
 import { commands } from "./commands/index.js";
 import { getAllPlayersAllGuilds, getKlanData, updatePlayer } from "./db.js";
 
+// Na Replitu bot NEBĚŽÍ – aby nekonfliktoval s Railway botem (stejný token = jen 1 připojení)
+if (process.env.REPL_ID) {
+  console.log("ℹ️ Replit prostředí detekováno – bot se nepřipojuje k Discordu.");
+  console.log("ℹ️ Bot běží na Railway (24/7). Replit slouží pouze pro vývoj.");
+  process.exit(0);
+}
+
 const token = process.env.DISCORD_TOKEN;
 if (!token) throw new Error("DISCORD_TOKEN není nastaven.");
 
