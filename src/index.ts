@@ -52,13 +52,13 @@ async function uberiJidlo(klan: string): Promise<void> {
 async function getHrac(userId: string) {
   const row = await db.select().from(hraciTable).where(eq(hraciTable.userId, userId)).limit(1);
   if (row.length === 0) {
-    await db.insert(hraciTable).values({ userId, zraneni: "žádné", hlad: 0 });
-    return { zraneni: "žádné", hlad: 0 };
+    await db.insert(hraciTable).values({ userId, zraneni: "žádné", hlad: 0, mrtvy: 0, xp: 0 });
+    return { userId, zraneni: "žádné", hlad: 0, mrtvy: 0, xp: 0 };
   }
   return row[0];
 }
 
-async function updateHrac(userId: string, data: Partial<{ zraneni: string; hlad: number }>) {
+async function updateHrac(userId: string, data: Partial<{ zraneni: string; hlad: number; mrtvy: number; xp: number }>) {
   await db.update(hraciTable).set(data).where(eq(hraciTable.userId, userId));
 }
 
