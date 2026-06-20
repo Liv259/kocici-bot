@@ -4,11 +4,12 @@ import * as schema from "./schema.js"; // compiled to .js by tsc
 
 const { Pool } = pg;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL must be set.");
+const connStr = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
+if (!connStr) {
+  throw new Error("NEON_DATABASE_URL must be set.");
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const pool = new Pool({ connectionString: connStr });
 export const db = drizzle(pool, { schema });
 
 export * from "./schema.js";
