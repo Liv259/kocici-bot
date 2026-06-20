@@ -427,6 +427,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
             await interaction.reply("⭐ Hvězdný klan se nenechá hladem ovlivnit.");
             return;
         }
+        const selfMemberNajist = await interaction.guild.members.fetch(interaction.user.id).catch(() => null);
+        if (selfMemberNajist && jeKote(selfMemberNajist)) {
+            await interaction.reply({ content: "🍼 Koťata jsou kojená matkou a pevnou stravu ještě nepotřebují!", flags: MessageFlags.Ephemeral });
+            return;
+        }
         const jidlo = await getJidlo(klan);
         if (jidlo <= 0) {
             await interaction.reply({ content: "❌ Není co jíst! Nejdřív někdo musí nalovit.", flags: MessageFlags.Ephemeral });
