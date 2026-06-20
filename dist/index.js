@@ -1,5 +1,5 @@
 import { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, GuildMember, Events, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, } from "discord.js";
-import { db, klanyTable, hraciTable, nemociTable, nastaveniTable, prirazeniTable } from "./db.js";
+import { db, pool, klanyTable, hraciTable, nemociTable, nastaveniTable, prirazeniTable } from "./db.js";
 import { eq, sql } from "drizzle-orm";
 import { createServer } from "http";
 // --- DATA ---
@@ -220,6 +220,15 @@ client.once(Events.ClientReady, async (readyClient) => {
     console.log(`✅ Přihlášen jako ${readyClient.user.tag}`);
     const servery = readyClient.guilds.cache.map(g => `${g.name} (${g.id})`).join(", ");
     console.log(`📋 Aktivní servery: ${servery}`);
+    // Vytvoření tabulek pokud neexistují
+    await pool.query(`
+    CREATE TABLE IF NOT EXISTS klany (nazev TEXT PRIMARY KEY, jidlo INTEGER NOT NULL DEFAULT 0);
+    CREATE TABLE IF NOT EXISTS hraci (user_id TEXT PRIMARY KEY, zraneni TEXT NOT NULL DEFAULT 'žádné', hlad INTEGER NOT NULL DEFAULT 0, mrtvy INTEGER NOT NULL DEFAULT 0, xp INTEGER NOT NULL DEFAULT 0);
+    CREATE TABLE IF NOT EXISTS nemoci (user_id TEXT PRIMARY KEY, nemoc TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS nastaveni (klic TEXT PRIMARY KEY, hodnota TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS prirazeni (ucednik_id TEXT PRIMARY KEY, mentor_id TEXT NOT NULL);
+  `);
+    console.log("✅ Tabulky připraveny.");
     // Inicializace klanů v databázi
     for (const klan of KLANY) {
         if (klan === "Hvězdný")
