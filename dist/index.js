@@ -247,8 +247,21 @@ client.once(Events.ClientReady, async (readyClient) => {
             console.error(`❌ Chyba při registraci příkazů pro ${guild.name}:`, err);
         }
     }
+    // Počítadlo upozornění na hlad pro každého hráče (max 3× za den, reset každý den)
+    const hladUpozorneni = {};
+    let posledniResetUpozorneni = new Date().toDateString();
     // Automatický hlad – každou hodinu
     setInterval(async () => {
+        // Reset počítadla každý den
+        const dnes = new Date().toDateString();
+        if (dnes !== posledniResetUpozorneni) {
+            for (const key of Object.keys(hladUpozorneni))
+                delete hladUpozorneni[key];
+            posledniResetUpozorneni = dnes;
+        }
+        // Zkontroluj čas — posílat jen mezi 9:00 a 20:00 (Praha = UTC+1/+2)
+        const hodina = new Date().getUTCHours() + 1; // UTC+1 (zima), pro léto +2 ale +1 je bezpečné minimum
+        const jeVhodnyČas = hodina >= 9 && hodina < 20;
         for (const guild of client.guilds.cache.values()) {
             const members = await guild.members.fetch();
             for (const member of members.values()) {
@@ -259,11 +272,15 @@ client.once(Events.ClientReady, async (readyClient) => {
                     const hrac = await getHrac(member.id);
                     const novyHlad = hrac.hlad + 1;
                     await updateHrac(member.id, { hlad: novyHlad });
-                    if (novyHlad >= 5) {
-                        try {
-                            await member.send("🍽️ Jsi hladový! Musíš něco nalovit, než se najíš.");
+                    if (novyHlad >= 5 && jeVhodnyČas) {
+                        const pocet = hladUpozorneni[member.id] ?? 0;
+                        if (pocet < 3) {
+                            try {
+                                await member.send("🍽️ Jsi hladový! Musíš něco nalovit, než se najíš.");
+                                hladUpozorneni[member.id] = pocet + 1;
+                            }
+                            catch { }
                         }
-                        catch { }
                     }
                 }
             }
